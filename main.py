@@ -31,7 +31,10 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "turkish")
 DEFAULT_SUMMARY_HOURS = int(os.getenv("DEFAULT_SUMMARY_HOURS", "6"))
 DB_PATH = Path(os.getenv("DB_PATH", "/app/data/chat_logs.db"))
+RATE_LIMIT_SECONDS = int(os.getenv("RATE_LIMIT_SECONDS", "10"))
+RATE_LIMIT_IMAGE = Path(__file__).parent / "rate_limit.jpg"
 _model = None
+_last_summary_time: dict[str, datetime] = {}  # chat_id -> last request time
 
 
 def init_db() -> None:
@@ -210,9 +213,23 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
 
+    chat_id = str(update.effective_chat.id) if update.effective_chat else "unknown"
+    now = datetime.utcnow()
+
+    # Rate limit check
+    if chat_id in _last_summary_time:
+        elapsed = (now - _last_summary_time[chat_id]).total_seconds()
+        if elapsed < RATE_LIMIT_SECONDS:
+            await update.message.reply_photo(
+                photo=open(RATE_LIMIT_IMAGE, "rb"),
+                caption=f"Yavaş ol! {RATE_LIMIT_SECONDS - int(elapsed)} saniye bekle."
+            )
+            return
+
+    _last_summary_time[chat_id] = now
+
     duration, label = parse_duration(context.args)
     status = await update.message.reply_text(f"Reviewing the last {label}...")
-    chat_id = update.effective_chat.id if update.effective_chat else "unknown"
 
     rows = get_logs(chat_id, duration)
     if not rows:
