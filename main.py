@@ -31,7 +31,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "turkish")
 DEFAULT_SUMMARY_HOURS = int(os.getenv("DEFAULT_SUMMARY_HOURS", "6"))
 DB_PATH = Path(os.getenv("DB_PATH", "/app/data/chat_logs.db"))
-RATE_LIMIT_SECONDS = int(os.getenv("RATE_LIMIT_SECONDS", "10"))
+RATE_LIMIT_SECONDS = int(os.getenv("RATE_LIMIT_SECONDS", "300"))
 RATE_LIMIT_IMAGE = Path(__file__).parent / "rate_limit.jpg"
 _model = None
 _last_summary_time: dict[str, datetime] = {}  # chat_id -> last request time
@@ -220,9 +220,14 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if chat_id in _last_summary_time:
         elapsed = (now - _last_summary_time[chat_id]).total_seconds()
         if elapsed < RATE_LIMIT_SECONDS:
+            remaining = int(RATE_LIMIT_SECONDS - elapsed)
+            if remaining >= 60:
+                wait_msg = f"{remaining // 60} dakika {remaining % 60} saniye"
+            else:
+                wait_msg = f"{remaining} saniye"
             await update.message.reply_photo(
                 photo=open(RATE_LIMIT_IMAGE, "rb"),
-                caption=f"Yavaş ol! {RATE_LIMIT_SECONDS - int(elapsed)} saniye bekle."
+                caption=f"Yavaş ol! {wait_msg} bekle."
             )
             return
 
