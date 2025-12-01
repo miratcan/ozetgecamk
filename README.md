@@ -28,7 +28,7 @@ Accepted units: minutes (`min`, `dk`, `dakika`), hours (`hour`, `saat`), days (`
 ## Environment variables
 - `TELEGRAM_TOKEN`: Telegram bot token (required)
 - `GEMINI_API_KEY`: Gemini API key (required)
-- `GEMINI_MODEL`: Model name, default `gemini-1.5-flash`
+- `GEMINI_MODEL`: Model name, default `gemini-1.5-flash-latest` (use this if `gemini-1.5-flash` returns 404)
 - `RESPONSE_LANGUAGE`: Language Gemini should respond in (default `turkish`)
 - `DEFAULT_SUMMARY_HOURS`: Hours to summarize when no args are given (default `6`)
 - `DB_PATH`: SQLite path (default `/app/data/chat_logs.db`)

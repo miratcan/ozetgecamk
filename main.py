@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash-latest")
 RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "turkish")
 DEFAULT_SUMMARY_HOURS = int(os.getenv("DEFAULT_SUMMARY_HOURS", "6"))
 DB_PATH = Path(os.getenv("DB_PATH", "/app/data/chat_logs.db"))
@@ -121,7 +121,19 @@ def ensure_gemini_model():
 
     if _model is None:
         genai.configure(api_key=GEMINI_API_KEY)
-        _model = genai.GenerativeModel(GEMINI_MODEL)
+
+        try:
+            _model = genai.GenerativeModel(GEMINI_MODEL)
+        except Exception as exc:
+            # Some accounts expose only "*-latest" or older names; try a fallback.
+            if "404" in str(exc) and not GEMINI_MODEL.endswith("-latest"):
+                fallback = f"{GEMINI_MODEL}-latest"
+                logger.warning(
+                    "Model %s not found; falling back to %s", GEMINI_MODEL, fallback
+                )
+                _model = genai.GenerativeModel(fallback)
+            else:
+                raise
 
     return _model
 
