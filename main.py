@@ -225,8 +225,12 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     prompt = (
         f"The following logs are from a Telegram chat over the last {label}.\n"
-        "Summarize the conversation in concise bullet points with a witty, gossip-like tone.\n"
+        "Summarize the conversation with a witty, gossip-like tone.\n"
         "Skip fluff; focus on key events and who said what.\n"
+        "Format rules:\n"
+        "- Use **bold** for user names\n"
+        "- Use bullet points (•) for each topic\n"
+        "- Group related messages under topic headers\n"
         f"Write the summary in {RESPONSE_LANGUAGE}.\n\n"
         f"Logs:\n{transcript}"
     )
@@ -234,7 +238,7 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         model = ensure_gemini_model()
         response = model.generate_content(prompt)
-        await status.edit_text(response.text[:4000])
+        await status.edit_text(response.text[:4000], parse_mode="Markdown")
     except Exception as exc:  # pragma: no cover - runtime safety
         logger.exception("Summarization error: %s", exc)
         await status.edit_text(f"Error: {exc}")
