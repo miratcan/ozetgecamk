@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash-latest")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 RESPONSE_LANGUAGE = os.getenv("RESPONSE_LANGUAGE", "turkish")
 DEFAULT_SUMMARY_HOURS = int(os.getenv("DEFAULT_SUMMARY_HOURS", "6"))
 DB_PATH = Path(os.getenv("DB_PATH", "/app/data/chat_logs.db"))
